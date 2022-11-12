@@ -1,7 +1,14 @@
 #!/bin/env python3
 
 import pgzrun
+import pygame
 import math
+from screeninfo import get_monitors
+
+monitors = get_monitors()
+
+# WIDTH = monitors[0].width
+# HEIGHT = monitors[0].height
 
 WIDTH = 800
 HEIGHT = 800
@@ -70,6 +77,7 @@ class Board:
 board = Board()
 
 def draw():
+    # screen.surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     screen.clear()
     screen.fill((0,128,200))
     # screen.draw.filled_rect(Rect((10,10),(60,10)), (128,128,128))
