@@ -60,6 +60,7 @@ class Board:
     selected = None
     arrows = []
     hover_pos = None
+    hover_idx = None
 
     def __init__(self):
         # create empty spaces
@@ -108,8 +109,110 @@ class Board:
         arrow.y -= y
         return arrow
 
+    def neighbor_coordinates(self, space, angle):
+        line = space.i
+        diagonal = space.j
+        new_line = line
+        new_diagonal = diagonal
+        if angle in [60, 120]:
+            new_line = line - 1
+            if line <= 4:
+                if angle == 60:
+                    new_diagonal = diagonal
+                else:
+                    new_diagonal = diagonal - 1
+            else:
+                if angle == 60:
+                    new_diagonal = diagonal + 1
+                else:
+                    new_diagonal = diagonal
+        elif angle in [240, 300]:
+            new_line = line + 1
+
+            if line >= 4:
+                if angle == 300:
+                    new_diagonal = diagonal
+                else:
+                    new_diagonal = diagonal - 1
+            else:
+                if angle == 300:
+                    new_diagonal = diagonal + 1
+                else:
+                    new_diagonal = diagonal
+        else:
+            new_line = line
+            if angle == 0:
+                new_diagonal += 1
+            else:
+                new_diagonal -= 1
+        return (new_line, new_diagonal)
+    
+    def neighbor(self, space, angle):
+        coords = self.sanitize(self.neighbor_coordinates(space, angle))
+        if coords:
+            return self.lines[coords[0]][coords[1]]
+        return None
+
+    def sanitize(self, coordinates):
+        line = coordinates[0]
+        diagonal = coordinates[1]
+        if line >= 0 and line < len(self.lines):
+            if diagonal >= 0 and diagonal < len(self.lines[line]):
+                return coordinates
+        return None
+
+    def move(self, selection, angle):
+        current_space = selection
+        previous_state = EMPTY
+        while True:
+            temp = current_space.state
+            current_space.state = previous_state
+            previous_state = temp
+            if previous_state == EMPTY:
+                break
+            destination_space = self.neighbor(current_space, angle)
+            if not destination_space:
+                break
+            current_space = destination_space
+
+    def can_move(self, selection, angle):
+        current_space = selection
+        player_color = selection.state
+        count_self = 1
+        while True:
+            current_space = self.neighbor(current_space, angle)
+            if not current_space:
+                return False # cannot push one's balls out of the board
+            if current_space.state != player_color:
+                break
+            count_self += 1
+        if count_self > 3:
+            return False # cannot push more than 3 of one's balls
+        opponent_color = current_space.state
+        if opponent_color == EMPTY:
+            return True # just move one's balls around
+        count_opponent = 1
+        while True:
+            current_space = self.neighbor(current_space, angle)
+            if not current_space or current_space.state != opponent_color:
+                break
+            count_opponent += 1
+        if not current_space or current_space.state == EMPTY:
+            if count_opponent < count_self:
+                return True
+        return False
+
+        
 
     def click_at(self, pos):
+
+        if self.hover_idx != None:
+            self.move(self.selected, self.arrows[self.hover_idx].angle)
+            self.selected = None
+            self.hover_idx = None
+            self.arrows = []
+            return
+
         clicked = self.get_space_at(pos)
         if clicked and not self.is_selectable(clicked):
             clicked = None
@@ -123,15 +226,21 @@ class Board:
             hovered = None
             i = 0
             for n in range(6):
-                arrow = self.arrow(n*60, 'arrow_right_green')
-                if arrow.collidepoint(self.hover_pos):
-                    count += 1
-                    hovered = i
-                
-                self.arrows.append(arrow)
-                i += 1
+                angle = n*60
+                if self.can_move(self.selected, angle):
+                    arrow = self.arrow(angle, 'arrow_right_green')
+                    if arrow.collidepoint(self.hover_pos):
+                        count += 1
+                        hovered = i
+                    
+                    self.arrows.append(arrow)
+                    i += 1
             if count == 1:
                 self.arrows[hovered] = self.arrow(self.arrows[hovered].angle, 'arrow_right_red')
+                self.hover_idx = hovered
+            else:
+                self.hover_idx = None
+
 
     def hover(self, pos):
         self.hover_pos = pos
