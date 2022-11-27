@@ -108,10 +108,10 @@ class Board:
             missing = 14 - self.count_color(color)
             if missing >= 6:
                 if color == WHITE:
-                    winner = "Black"
+                    winner = "Les noirs"
                 else:
-                    winner = "White"
-                screen.draw.text(winner + " wins!!", center=(WIDTH/2, HEIGHT/2), fontsize=RADIUS/2)
+                    winner = "Les blancs"
+                screen.draw.text(winner + " gagnent!!", center=(WIDTH/2, HEIGHT/2), fontsize=RADIUS/3)
                 self.current_player = None
                 return
             rel_pos = pygame.Vector2(-D * 3 / 4, 0)
