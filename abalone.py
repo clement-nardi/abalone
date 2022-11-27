@@ -4,23 +4,29 @@ import pgzrun
 import pygame
 import math
 from screeninfo import get_monitors
-
 import pygame.math
-
-monitors = get_monitors()
-
-# WIDTH = monitors[0].width
-# HEIGHT = monitors[0].height
+import argparse
 
 WIDTH = 1280
 HEIGHT = 720
 
+parser = argparse.ArgumentParser(prog = 'Abalone', description = 'Abalone board game')
+parser.add_argument('-f', '--fullscreen', action='store_true') 
+
+args = parser.parse_args()
+
+if args.fullscreen:
+    monitors = get_monitors()
+    WIDTH = monitors[0].width
+    HEIGHT = monitors[0].height
+
+
 CENTER = pygame.Vector2(WIDTH * 3 / 7, HEIGHT / 2)
 RADIUS = min(CENTER[0], CENTER[1])
-
 D = RADIUS / 5  # distance between 2 balls
 A = D * math.sqrt(3) / 2  # height between 2 lines
 BALL_RADIUS = RADIUS / 12
+
 
 EMPTY = 0
 BLACK = 1
@@ -367,7 +373,8 @@ board = Board()
 
 
 def draw():
-    # screen.surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+    if args.fullscreen:
+        screen.surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     screen.clear()
     screen.fill((0, 50, 200))
     # screen.draw.filled_rect(Rect((10,10),(60,10)), (128,128,128))
@@ -381,5 +388,5 @@ def on_mouse_down(pos):
 def on_mouse_move(pos):
     board.hover(pos)
 
-
+    
 pgzrun.go()
